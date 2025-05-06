@@ -1,5 +1,5 @@
 using AutoMapper;
-using EShopApi.DTOs;
+using EShopApi.Cache;
 using EShopApi.DTOs.Orders;
 using EShopApi.Models;
 using EShopApi.Repositories;
@@ -14,19 +14,32 @@ public class OrderService : IOrderService
 
     private readonly IMapper _mapper;
 
-    public OrderService(IOrderRepository ordersRepo, IProductRepository productsRepo, IMapper mapper) 
+    private readonly ICacheService _cache;
+
+
+    public OrderService(IOrderRepository ordersRepo, IProductRepository productsRepo, IMapper mapper, ICacheService cache) 
     {
         _ordersRepo = ordersRepo;
         _productsRepo = productsRepo;
         _mapper = mapper;
+        _cache = cache;
     }
 
 
     public async Task<IEnumerable<OrderReadDTO>> GetAllAsync()
     {
+        const string cacheKey = "orders_all";
+        var cached = await _cache.GetAsync<List<OrderReadDTO>>(cacheKey);
+
+        if (cached != null)
+            return cached;
+
         var orders = await _ordersRepo.GetAllAsync();
+        var orderDTOs = _mapper.Map<IEnumerable<OrderReadDTO>>(orders);
+
+        await _cache.SetAsync(cacheKey, orderDTOs, TimeSpan.FromMinutes(1));
         
-        return _mapper.Map<IEnumerable<OrderReadDTO>>(orders);
+        return orderDTOs;
     }
 
     public async Task<OrderReadDTO?> GetByIdAsync(Guid id)
