@@ -48,6 +48,8 @@ public class ProductService : IProductService
 
         await _repo.AddAsync(product);
 
+        await _cache.RemoveAsync("products_all");
+
         return _mapper.Map<ProductReadDTO>(product);
     }
 
@@ -58,7 +60,14 @@ public class ProductService : IProductService
         _mapper.Map(dto, product);
 
         await _repo.UpdateAsync(product);
+
+        await _cache.RemoveAsync("products_all");
     }
 
-    public Task DeleteAsync(Guid id) => _repo.DeleteAsync(id);
+    public async Task DeleteAsync(Guid id)
+    {
+        await _repo.DeleteAsync(id);
+
+        await _cache.RemoveAsync("products_all");
+    }
 }

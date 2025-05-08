@@ -34,5 +34,13 @@ namespace EShopApi.Cache
             var expiryTime = DateTime.UtcNow.Add(duration);
             _store[key] = (value!, expiryTime);
         }
+
+        public async Task RemoveAsync(string key)
+        {
+            Console.WriteLine($"[FakeRedis] DELETE {key}");
+            await Task.Delay(100);
+
+            _store.Remove(key);
+        }
     }
 }

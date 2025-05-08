@@ -22,5 +22,12 @@ namespace EShopApi.Cache
             _cache.Set(key, value, duration);
             return Task.CompletedTask;
         }
+
+        public Task RemoveAsync(string key)
+        {
+            _cache.Remove(key);
+
+            return Task.CompletedTask;
+        }
     }
 }

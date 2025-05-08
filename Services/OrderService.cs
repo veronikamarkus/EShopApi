@@ -68,9 +68,16 @@ public class OrderService : IOrderService
 
         await _ordersRepo.AddAsync(order);
 
+        await _cache.RemoveAsync("orders_all");
+
         return _mapper.Map<OrderReadDTO>(order);
     }
 
-    public Task DeleteAsync(Guid id) => _ordersRepo.DeleteAsync(id);
+    public async Task DeleteAsync(Guid id)
+    {
+        await _ordersRepo.DeleteAsync(id);
+
+        await _cache.RemoveAsync("orders_all");
+    }
 
 }
