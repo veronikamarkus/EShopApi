@@ -28,8 +28,7 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<OrderReadDTO>> GetAllAsync()
     {
-        const string cacheKey = "orders_all";
-        var cached = await _cache.GetAsync<List<OrderReadDTO>>(cacheKey);
+        var cached = await _cache.GetAsync<List<OrderReadDTO>>(CacheKeys.ORDER_ALL);
 
         if (cached != null)
             return cached;
@@ -37,7 +36,7 @@ public class OrderService : IOrderService
         var orders = await _ordersRepo.GetAllAsync();
         var orderDTOs = _mapper.Map<IEnumerable<OrderReadDTO>>(orders);
 
-        await _cache.SetAsync(cacheKey, orderDTOs, TimeSpan.FromMinutes(1));
+        await _cache.SetAsync(CacheKeys.ORDER_ALL, orderDTOs, TimeSpan.FromMinutes(1));
         
         return orderDTOs;
     }
@@ -68,7 +67,7 @@ public class OrderService : IOrderService
 
         await _ordersRepo.AddAsync(order);
 
-        await _cache.RemoveAsync("orders_all");
+        await _cache.RemoveAsync(CacheKeys.ORDER_ALL);
 
         return _mapper.Map<OrderReadDTO>(order);
     }
@@ -77,7 +76,7 @@ public class OrderService : IOrderService
     {
         await _ordersRepo.DeleteAsync(id);
 
-        await _cache.RemoveAsync("orders_all");
+        await _cache.RemoveAsync(CacheKeys.ORDER_ALL);
     }
 
 }

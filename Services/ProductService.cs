@@ -21,8 +21,7 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductReadDTO>> GetAllAsync()
     {
-        const string cacheKey = "products_all";
-        var cached = await _cache.GetAsync<List<ProductReadDTO>>(cacheKey);
+        var cached = await _cache.GetAsync<List<ProductReadDTO>>(CacheKeys.PRODUCTS_ALL);
 
         if (cached != null)
             return cached;
@@ -30,7 +29,7 @@ public class ProductService : IProductService
         var products = await _repo.GetAllAsync();
         var productDTOs = _mapper.Map<List<ProductReadDTO>>(products);
 
-        await _cache.SetAsync(cacheKey, productDTOs, TimeSpan.FromMinutes(1));
+        await _cache.SetAsync(CacheKeys.PRODUCTS_ALL, productDTOs, TimeSpan.FromMinutes(1));
 
         return productDTOs;
     }
@@ -48,7 +47,7 @@ public class ProductService : IProductService
 
         await _repo.AddAsync(product);
 
-        await _cache.RemoveAsync("products_all");
+        await _cache.RemoveAsync(CacheKeys.PRODUCTS_ALL);
 
         return _mapper.Map<ProductReadDTO>(product);
     }
@@ -61,13 +60,13 @@ public class ProductService : IProductService
 
         await _repo.UpdateAsync(product);
 
-        await _cache.RemoveAsync("products_all");
+        await _cache.RemoveAsync(CacheKeys.PRODUCTS_ALL);
     }
 
     public async Task DeleteAsync(Guid id)
     {
         await _repo.DeleteAsync(id);
 
-        await _cache.RemoveAsync("products_all");
+        await _cache.RemoveAsync(CacheKeys.PRODUCTS_ALL);
     }
 }
