@@ -45,7 +45,7 @@ public class ProductService : IProductService
 
         await _cache.SetAsync(cacheKey, ProductReadDto, TimeSpan.FromMinutes(1));
 
-        return product == null ? null : ProductReadDto;
+        return ProductReadDto;
     }
 
     public async Task<ProductReadDTO> AddAsync(ProductCreateDTO dto)
