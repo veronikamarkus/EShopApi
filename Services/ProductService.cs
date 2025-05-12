@@ -40,7 +40,9 @@ public class ProductService : IProductService
         var cached = await _cache.GetAsync<ProductReadDTO>(cacheKey);
         if (cached != null) return cached;
 
-        var product = await _repo.GetByIdAsync(id) ?? throw new ArgumentException("Product not found");
+        var product = await _repo.GetByIdAsync(id);
+        if (product == null) return null;
+
         var ProductReadDto = _mapper.Map<ProductReadDTO>(product);
 
         await _cache.SetAsync(cacheKey, ProductReadDto, TimeSpan.FromMinutes(1));
@@ -61,7 +63,9 @@ public class ProductService : IProductService
 
     public async Task UpdateAsync(Guid id, ProductUpdateDTO dto)
     {
-        var product = await _repo.GetByIdAsync(id) ?? throw new ArgumentException("Product not found");
+        var product = await _repo.GetByIdAsync(id);
+        if (product == null)
+        throw new KeyNotFoundException($"Product with ID {id} not found.");
 
         _mapper.Map(dto, product);
 

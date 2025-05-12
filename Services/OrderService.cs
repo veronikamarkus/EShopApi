@@ -43,9 +43,18 @@ public class OrderService : IOrderService
 
     public async Task<OrderReadDTO?> GetByIdAsync(Guid id)
     {
-        var order = await _ordersRepo.GetByIdAsync(id);
+        string cacheKey = $"order_{id}";
+        var cached = await _cache.GetAsync<OrderReadDTO>(cacheKey);
+        if (cached != null) return cached;
 
-        return order == null ? null : _mapper.Map<OrderReadDTO>(order);
+        var order = await _ordersRepo.GetByIdAsync(id);
+        if (order == null) return null;
+
+        var OrderReadDto = _mapper.Map<OrderReadDTO>(order);
+
+        await _cache.SetAsync(cacheKey, OrderReadDto, TimeSpan.FromMinutes(1));
+
+        return OrderReadDto;
     }
 
     public async Task<OrderReadDTO> CreateAsync(OrderCreateDTO request)
@@ -76,6 +85,7 @@ public class OrderService : IOrderService
     {
         await _ordersRepo.DeleteAsync(id);
 
+        await _cache.RemoveAsync($"order_{id}");
         await _cache.RemoveAsync(CacheKeys.ORDERS_ALL);
     }
 
