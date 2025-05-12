@@ -7,6 +7,7 @@ namespace EShopApi.Cache
 
         public async Task<T?> GetAsync<T>(string key)
         {
+            ValidateKey(key);
             Console.WriteLine($"[FakeRedis] GET {key}");
             await Task.Delay(100);
 
@@ -28,6 +29,7 @@ namespace EShopApi.Cache
 
         public async Task SetAsync<T>(string key, T value, TimeSpan duration)
         {
+            ValidateKey(key);
             Console.WriteLine($"[FakeRedis] SET {key} (expires in {duration.TotalSeconds} seconds)");
             await Task.Delay(100);
 
@@ -37,10 +39,18 @@ namespace EShopApi.Cache
 
         public async Task RemoveAsync(string key)
         {
+            ValidateKey(key);
             Console.WriteLine($"[FakeRedis] DELETE {key}");
             await Task.Delay(100);
 
             _store.Remove(key);
         }
+
+        private void ValidateKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Cache key must not be null or empty.", nameof(key));
+        }
+
     }
 }
