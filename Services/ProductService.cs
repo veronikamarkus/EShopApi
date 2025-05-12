@@ -36,9 +36,16 @@ public class ProductService : IProductService
 
     public async Task<ProductReadDTO?> GetByIdAsync(Guid id)
     {
-        var product = await _repo.GetByIdAsync(id);
+        string cacheKey = $"product_{id}";
+        var cached = await _cache.GetAsync<ProductReadDTO>(cacheKey);
+        if (cached != null) return cached;
 
-        return product == null ? null : _mapper.Map<ProductReadDTO>(product);
+        var product = await _repo.GetByIdAsync(id) ?? throw new ArgumentException("Product not found");
+        var ProductReadDto = _mapper.Map<ProductReadDTO>(product);
+
+        await _cache.SetAsync(cacheKey, ProductReadDto, TimeSpan.FromMinutes(1));
+
+        return product == null ? null : ProductReadDto;
     }
 
     public async Task<ProductReadDTO> AddAsync(ProductCreateDTO dto)
@@ -60,6 +67,7 @@ public class ProductService : IProductService
 
         await _repo.UpdateAsync(product);
 
+        await _cache.RemoveAsync($"product_{id}");
         await _cache.RemoveAsync(CacheKeys.PRODUCTS_ALL);
     }
 
@@ -67,6 +75,7 @@ public class ProductService : IProductService
     {
         await _repo.DeleteAsync(id);
 
+        await _cache.RemoveAsync($"product_{id}");
         await _cache.RemoveAsync(CacheKeys.PRODUCTS_ALL);
     }
 }
