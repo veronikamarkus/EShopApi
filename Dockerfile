@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=build /app/out ./
 
 # Expose port used by Kestrel
-EXPOSE 80
+EXPOSE 8080
 
 # Run the app
 ENTRYPOINT ["dotnet", "EShopApi.dll"]
